@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admiral Quality Tech — Weekly Report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #0B1E3D; --navy-mid: #132850; --gold: #D4A843;
+    --white: #FFFFFF; --gray-100: #F4F6FA; --gray-200: #E2E8F4;
+    --gray-400: #8A98B4; --gray-600: #4A5A7A; --text: #0D1B33;
+    --teal: #1D9E75; --blue: #185FA5; --blue-light: #378ADD;
+    --amber: #BA7517; --red: #E24B4A; --purple: #7F77DD;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--gray-100); color: var(--text); }
+
+  /* HEADER */
+  header { background: var(--navy); border-bottom: 3px solid var(--gold); padding: 20px 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+  .hd-left h1 { font-size: 18px; font-weight: 700; color: #fff; }
+  .hd-left p { font-size: 12px; color: var(--gray-400); margin-top: 3px; }
+  .hd-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .week-chip { font-family: monospace; font-size: 12px; color: var(--gold); background: rgba(212,168,67,.12); border: 1px solid rgba(212,168,67,.3); padding: 5px 12px; border-radius: 4px; }
+  .btn-print { background: var(--gold); color: var(--navy); border: none; padding: 7px 16px; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .btn-print:hover { opacity: .85; }
+
+  /* STRIP */
+  .strip { background: var(--navy-mid); padding: 0 32px; display: flex; flex-wrap: wrap; border-bottom: 1px solid rgba(255,255,255,.06); }
+  .strip-item { padding: 14px 24px 14px 0; margin-right: 24px; border-right: 1px solid rgba(255,255,255,.08); }
+  .strip-item:last-child { border-right: none; }
+  .sl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--gray-400); }
+  .sv { font-size: 20px; font-weight: 700; color: #fff; font-family: monospace; margin-top: 2px; }
+  .sv.gold { color: var(--gold); } .sv.teal { color: #5DCAA5; } .sv.red { color: #f47c7c; } .sv.amber { color: #EF9F27; }
+
+  /* MAIN */
+  main { max-width: 1300px; margin: 0 auto; padding: 28px 32px; }
+
+  /* METRICS */
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .mc { background: #fff; border: 1px solid var(--gray-200); border-radius: 10px; padding: 16px; }
+  .mc-l { font-size: 11px; color: var(--gray-400); font-weight: 600; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+  .mc-v { font-size: 24px; font-weight: 700; color: var(--text); font-family: monospace; line-height: 1; }
+  .mc-s { font-size: 11px; color: var(--gray-400); margin-top: 4px; }
+
+  /* SECTION */
+  .section { margin-bottom: 28px; }
+  .section-hd { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .p-badge { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; font-family: monospace; flex-shrink: 0; }
+  .b1 { background: #D0F2EE; color: var(--teal); } .b2 { background: #FDF0D8; color: var(--amber); }
+  .b3 { background: #FCEBEB; color: var(--red); } .b4 { background: #EAF3DE; color: #3B6D11; }
+  .sh h2 { font-size: 16px; font-weight: 700; color: var(--navy); }
+  .sh p { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+
+  /* CHARTS ROW */
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .chart-card { background: #fff; border: 1px solid var(--gray-200); border-radius: 10px; padding: 18px; }
+  .chart-card h3 { font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 10px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; font-size: 12px; color: var(--gray-600); }
+  .leg { display: flex; align-items: center; gap: 5px; }
+  .leg-sq { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .chart-full { background: #fff; border: 1px solid var(--gray-200); border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+  .chart-full h3 { font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 14px; }
+
+  /* TABLE */
+  .tbl-wrap { background: #fff; border: 1px solid var(--gray-200); border-radius: 10px; overflow: hidden; margin-bottom: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th { background: var(--navy); color: var(--gray-400); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .7px; padding: 9px 12px; text-align: left; }
+  tbody tr { border-bottom: 1px solid var(--gray-200); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--gray-100); }
+  td { padding: 9px 12px; vertical-align: top; }
+  .td-c { font-weight: 600; color: var(--navy); } .td-r { color: var(--gray-400); font-family: monospace; font-size: 11px; }
+
+  /* PILLS */
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .p-active { background: #D0F2EE; color: #0F6E56; } .p-done { background: #EAF3DE; color: #3B6D11; }
+  .p-failed { background: #FCEBEB; color: #A32D2D; } .p-bid { background: #E6F1FB; color: #185FA5; }
+  .p-pend { background: #FAEEDA; color: #854F0B; } .p-rev { background: #EEEDFE; color: #534AB7; }
+
+  /* PROGRESS BARS */
+  .pb-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 12px; }
+  .pb-lbl { width: 150px; color: var(--gray-600); flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pb-track { flex: 1; height: 8px; background: var(--gray-200); border-radius: 4px; overflow: hidden; }
+  .pb-fill { height: 100%; border-radius: 4px; }
+  .pb-val { width: 55px; text-align: right; color: var(--text); font-family: monospace; font-size: 11px; flex-shrink: 0; }
+
+  /* SUGGEST BOX */
+  .suggest { background: var(--navy); border-radius: 10px; padding: 18px 22px; margin-bottom: 8px; }
+  .suggest h3 { font-size: 13px; font-weight: 600; color: var(--gold); margin-bottom: 12px; text-transform: uppercase; letter-spacing: .5px; }
+  .fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .fi { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: rgba(255,255,255,.7); }
+  .fc { font-family: monospace; font-size: 11px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); padding: 2px 6px; border-radius: 3px; color: var(--gold); white-space: nowrap; flex-shrink: 0; }
+
+  /* NOTE */
+  .note { font-size: 11px; color: var(--gray-400); margin-top: 6px; }
+  .divider { border: none; border-top: 1px solid var(--gray-200); margin: 24px 0; }
+
+  /* FOOTER */
+  footer { background: var(--navy); padding: 14px 32px; display: flex; justify-content: space-between; font-size: 11px; color: var(--gray-400); flex-wrap: wrap; gap: 6px; }
+  footer span { font-family: monospace; color: var(--gold); }
+
+  @media (max-width: 700px) {
+    .charts-row { grid-template-columns: 1fr; }
+    .fields-grid { grid-template-columns: 1fr; }
+    main { padding: 20px 16px; }
+    header { padding: 16px; }
+    .strip { padding: 0 16px; }
+    .strip-item { padding: 10px 16px 10px 0; margin-right: 16px; }
+  }
+  @media print {
+    body { background: #fff; }
+    .btn-print { display: none; }
+    header, .strip, footer { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .suggest { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .section { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hd-left">
+    <h1>Admiral Quality Tech — Weekly Business Report</h1>
+    <p>P1 Contract in Hand · P3 Tender Submitted</p>
+  </div>
+  <div class="hd-right">
+    <span class="week-chip">Week of 22 Jun 2026</span>
+    <button class="btn-print" onclick="window.print()">⬇ Print / Export PDF</button>
+  </div>
+</header>
+
+<div class="strip">
+  <div class="strip-item"><div class="sl">Active POs (P1)</div><div class="sv gold">9</div></div>
+  <div class="strip-item"><div class="sl">Total Est. Value</div><div class="sv teal">RM 349K</div></div>
+  <div class="strip-item"><div class="sl">Billed</div><div class="sv">RM 285K</div></div>
+  <div class="strip-item"><div class="sl">Unbilled</div><div class="sv amber">RM 64K</div></div>
+  <div class="strip-item"><div class="sl">Tenders in Hand</div><div class="sv">4</div></div>
+  <div class="strip-item"><div class="sl">Submitted</div><div class="sv">18</div></div>
+  <div class="strip-item"><div class="sl">Declined / Failed</div><div class="sv red">6</div></div>
+</div>
+
+<main>
+
+  <!-- ── P1 ── -->
+  <div class="section">
+    <div class="section-hd">
+      <div class="p-badge b1">P1</div>
+      <div class="sh"><h2>Contract in Hand — Active POs</h2><p>Awarded Contract Management workflow · 9 active jobs</p></div>
+    </div>
+
+    <div class="metrics">
+      <div class="mc"><div class="mc-l">Total POs</div><div class="mc-v" style="color:var(--teal)">9</div><div class="mc-s">Active contracts</div></div>
+      <div class="mc"><div class="mc-l">Total Est. Value</div><div class="mc-v">RM 349K</div><div class="mc-s">Sum of declared values</div></div>
+      <div class="mc"><div class="mc-l">Billed (Done)</div><div class="mc-v" style="color:var(--teal)">RM 285K</div><div class="mc-s">Jobs in Done stage</div></div>
+      <div class="mc"><div class="mc-l">Unbilled (Active)</div><div class="mc-v" style="color:var(--amber)">RM 64K</div><div class="mc-s">In-progress jobs</div></div>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-card">
+        <h3>Billed vs Unbilled (RM)</h3>
+        <div class="legend">
+          <span class="leg"><span class="leg-sq" style="background:#1D9E75"></span>Billed RM 285,003</span>
+          <span class="leg"><span class="leg-sq" style="background:#BA7517"></span>Unbilled RM 64,427</span>
+        </div>
+        <div style="position:relative;width:100%;height:220px;">
+          <canvas id="billedChart" role="img" aria-label="Doughnut: billed RM285K vs unbilled RM64K">Billed: 285003. Unbilled: 64427.</canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3>Contract value by client (RM)</h3>
+        <div style="position:relative;width:100%;height:260px;">
+          <canvas id="contractSmall" role="img" aria-label="Bar chart of contract values by client">Top: Mandarin Oriental 198900, Calreno 40315, Eastman Chemical 34768.</canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-full">
+      <h3>All active contracts — full breakdown</h3>
+      <div style="position:relative;width:100%;height:300px;">
+        <canvas id="contractFull" role="img" aria-label="Horizontal bar of all 9 active contracts by estimated value">Mandarin Oriental: 198900. Calreno: 40315. Eastman Chemical: 34768. Darcarion: 18360. Eastman TA0205: 12420. Jaewon: 9540. Flexsys: 4358. Eastman DPI: 1134. RM Leopad: 486.</canvas>
+      </div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Client</th><th>Project</th><th>Ref No.</th><th>PO No.</th><th>Est. Value (RM)</th><th>Stage</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><div class="td-c">JAEWON FRONTIER</div></td><td>Manpower for UTTM & Visual Inspection</td><td class="td-r">ADM-JAEWON-2605-256</td><td class="td-r">—</td><td class="td-r">9,540</td><td><span class="pill p-pend">Req Project #</span></td></tr>
+          <tr><td>2</td><td><div class="td-c">DARCARION TECH</div></td><td>Manpower & Testing — 12 Air Receiver Tanks</td><td class="td-r">ADM/DARCARION/2606-299</td><td class="td-r">—</td><td class="td-r">18,360</td><td><span class="pill p-pend">Project # Issuance</span></td></tr>
+          <tr><td>3</td><td><div class="td-c">EASTMAN INTERLAYERS</div></td><td>Manpower — TA0205 Inspection</td><td class="td-r">n/a</td><td class="td-r">PO-0057823716</td><td class="td-r">12,420</td><td><span class="pill p-pend">Project # Issuance</span></td></tr>
+          <tr><td>4</td><td><div class="td-c">CALRENO SDN BHD</div></td><td>NDT Works — MH-F-01 Furnace, Eastman Kuantan</td><td class="td-r">ADM/CALRENO/2606-2284</td><td class="td-r">—</td><td class="td-r">40,315</td><td><span class="pill p-rev">Review & Approval</span></td></tr>
+          <tr><td>5</td><td><div class="td-c">EASTMAN CHEMICAL</div></td><td>COPO Furnace Coil Replacement — 3rd Party Inspector</td><td class="td-r">ADM/EASTMAN/2605-258</td><td class="td-r">PO-0057826806</td><td class="td-r">34,768</td><td><span class="pill p-rev">Review & Approval</span></td></tr>
+          <tr><td>6</td><td><div class="td-c">MANDARIN ORIENTAL KL</div></td><td>Hotel Signage Upgrade — Roof Top & Main Entrance</td><td class="td-r">ADM/KLCCH/2602-087</td><td class="td-r">MOPO 26027784</td><td class="td-r">198,900</td><td><span class="pill p-done">Done</span></td></tr>
+          <tr><td>7</td><td><div class="td-c">RM LEOPAD SDN BHD</div></td><td>Ultrasonic Thickness Test (UTIM) incl. Report</td><td class="td-r">ADM/RMLEOPAD/2505-209</td><td class="td-r">—</td><td class="td-r">486</td><td><span class="pill p-done">Done</span></td></tr>
+          <tr><td>8</td><td><div class="td-c">EASTMAN INTERLAYERS</div></td><td>Dye Penetrant Inspection</td><td class="td-r">ADM/EASTMAN/2604-207</td><td class="td-r">—</td><td class="td-r">1,134</td><td><span class="pill p-done">Done</span></td></tr>
+          <tr><td>9</td><td><div class="td-c">FLEXSYS MALAYSIA</div></td><td>Manpower — Boiler CF Renewal (Tube Replacement 2026)</td><td class="td-r">ADM/FLEXSYS/2604-170</td><td class="td-r">PO-5300047817</td><td class="td-r">4,358</td><td><span class="pill p-done">Done</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">⚠ Billed/Unbilled derived from stage. Cross-reference with Invoicing & Payment Collection workflow for exact invoice amounts.</p>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ── P3 ── -->
+  <div class="section">
+    <div class="section-hd">
+      <div class="p-badge b3">P3</div>
+      <div class="sh"><h2>Tender Submitted — Pipeline Overview</h2><p>Tender Management workflow · 28 tenders tracked</p></div>
+    </div>
+
+    <div class="metrics">
+      <div class="mc"><div class="mc-l">In Hand (Active)</div><div class="mc-v" style="color:var(--blue)">4</div><div class="mc-s">Receive ITT / Decision / Bid</div></div>
+      <div class="mc"><div class="mc-l">Submitted (Done)</div><div class="mc-v" style="color:var(--teal)">18</div><div class="mc-s">Awaiting result</div></div>
+      <div class="mc"><div class="mc-l">Declined / Failed</div><div class="mc-v" style="color:var(--red)">6</div><div class="mc-s">21% decline rate</div></div>
+      <div class="mc"><div class="mc-l">Total Tracked</div><div class="mc-v">28</div><div class="mc-s">All-time</div></div>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-card">
+        <h3>Tender funnel — counts</h3>
+        <div class="legend">
+          <span class="leg"><span class="leg-sq" style="background:#185FA5"></span>In Hand 4</span>
+          <span class="leg"><span class="leg-sq" style="background:#1D9E75"></span>Submitted 18</span>
+          <span class="leg"><span class="leg-sq" style="background:#E24B4A"></span>Failed 6</span>
+        </div>
+        <div style="position:relative;width:100%;height:220px;">
+          <canvas id="funnelChart" role="img" aria-label="Bar: In Hand 4, Submitted 18, Failed 6">In Hand: 4. Submitted: 18. Failed: 6.</canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3>Decline reasons</h3>
+        <div class="legend">
+          <span class="leg"><span class="leg-sq" style="background:#E24B4A"></span>No reason captured 67%</span>
+          <span class="leg"><span class="leg-sq" style="background:#BA7517"></span>Not interested 17%</span>
+          <span class="leg"><span class="leg-sq" style="background:#7F77DD"></span>Missing capability 17%</span>
+        </div>
+        <div style="position:relative;width:100%;height:220px;">
+          <canvas id="declineChart" role="img" aria-label="Pie: 67% no reason, 17% not interested, 17% missing capability">No reason: 4. Not interested: 1. Missing capability: 1.</canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-full">
+      <h3>Tenders by client — frequency</h3>
+      <div class="pb-row"><span class="pb-lbl">Mubadala Energy</span><div class="pb-track"><div class="pb-fill" style="width:100%;background:#185FA5"></div></div><span class="pb-val">4</span></div>
+      <div class="pb-row"><span class="pb-lbl">UTP</span><div class="pb-track"><div class="pb-fill" style="width:75%;background:#185FA5"></div></div><span class="pb-val">3</span></div>
+      <div class="pb-row"><span class="pb-lbl">EnQuest Petroleum</span><div class="pb-track"><div class="pb-fill" style="width:50%;background:#378ADD"></div></div><span class="pb-val">2</span></div>
+      <div class="pb-row"><span class="pb-lbl">Jadestone Energy</span><div class="pb-track"><div class="pb-fill" style="width:50%;background:#378ADD"></div></div><span class="pb-val">2</span></div>
+      <div class="pb-row"><span class="pb-lbl">Hibiscus Malaysia</span><div class="pb-track"><div class="pb-fill" style="width:50%;background:#378ADD"></div></div><span class="pb-val">2</span></div>
+      <div class="pb-row"><span class="pb-lbl">TotalEnergies EP</span><div class="pb-track"><div class="pb-fill" style="width:50%;background:#378ADD"></div></div><span class="pb-val">2</span></div>
+      <div class="pb-row"><span class="pb-lbl">Eastman Interlayers</span><div class="pb-track"><div class="pb-fill" style="width:50%;background:#378ADD"></div></div><span class="pb-val">2</span></div>
+      <div class="pb-row"><span class="pb-lbl">Inpex / KLCCH / others</span><div class="pb-track"><div class="pb-fill" style="width:25%;background:#85B7EB"></div></div><span class="pb-val">1 each</span></div>
+    </div>
+
+    <p style="font-weight:600;font-size:13px;color:var(--navy);margin-bottom:8px;">Currently in Hand (Active)</p>
+    <div class="tbl-wrap" style="margin-bottom:14px;">
+      <table>
+        <thead><tr><th>Client</th><th>Project</th><th>Admiral Ref No.</th><th>Closing Date</th><th>Stage</th></tr></thead>
+        <tbody>
+          <tr><td class="td-c">MUBADALA ENERGY</td><td>Market Survey — Supply of IT Goods & Services</td><td class="td-r">ADM/MUBADALA/2605-224</td><td class="td-r">5 May 2026</td><td><span class="pill p-bid">Receive ITT</span></td></tr>
+          <tr><td class="td-c">TOTALENERGIES EP</td><td>NetApp System Maintenance Renewal</td><td class="td-r">ADM/TOTALENERGIES/2605-223</td><td class="td-r">4 May 2026</td><td><span class="pill p-bid">Receive ITT</span></td></tr>
+          <tr><td class="td-c">UTP</td><td>BEPCC of Methane Emissions Detection (MEDQ) at InSTEP</td><td class="td-r">ADM/UTP/2604-213</td><td class="td-r">9 May 2026</td><td><span class="pill p-bid">Receive ITT</span></td></tr>
+          <tr><td class="td-c">SBD RESOURCES SDN BHD</td><td>RFQ Boiler Integrity</td><td class="td-r">ADM/SBD/2605-220</td><td class="td-r">10 May 2026</td><td><span class="pill p-pend">Tender Decision</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="font-weight:600;font-size:13px;color:var(--red);margin-bottom:8px;">Declined / Failed (6)</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Client</th><th>Project</th><th>Admiral Ref No.</th><th>Reason</th></tr></thead>
+        <tbody>
+          <tr><td class="td-c">UTP</td><td>Refurbishment of Block F, UTP Seri Iskandar</td><td class="td-r">ADM/UTP/2605-219</td><td><span class="pill p-failed">No reason captured</span></td></tr>
+          <tr><td class="td-c">JADESTONE ENERGY</td><td>GHG L5 Measurement & Reporting</td><td class="td-r">ADM/JADESTONE/2605-222</td><td><span class="pill p-failed">No reason captured</span></td></tr>
+          <tr><td class="td-c">PETRONAS LUBRICANTS</td><td>Environmental & Hygiene Monitoring — Melaka Lube Blending Plant</td><td class="td-r">ADM/PLISB/2604-173</td><td><span class="pill p-failed">No reason captured</span></td></tr>
+          <tr><td class="td-c">UTP</td><td>Refurbishment Works Block I & J</td><td class="td-r">ADM/UTP/2604-188</td><td><span class="pill p-pend">Not interested</span></td></tr>
+          <tr><td class="td-c">KLCC HOLDINGS</td><td>Supply Ombak KLCC Mall Marketing Comm Assets</td><td class="td-r">ADM/KLCCH/2604-184</td><td><span class="pill p-failed">No reason captured</span></td></tr>
+          <tr><td class="td-c">ENQUEST PETROLEUM</td><td>SSL Certificate Renewal 2026</td><td class="td-r">ADM/ENQUEST/2604-167</td><td><span class="pill p-rev">Missing capability / no partner</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">⚠ 4 of 6 failed tenders have no reason recorded. Recommend making Remarks mandatory on the Failed stage.</p>
+  </div>
+
+</main>
+
+<footer>
+  <p>Admiral Quality Tech — Auto-generated from Rework via AI · Confidential</p>
+  <span>Generated: 22 Jun 2026</span>
+</footer>
+
+<script>
+Chart.defaults.font.family = "inherit";
+Chart.defaults.color = "#8A98B4";
+Chart.defaults.borderColor = "rgba(226,232,244,0.7)";
+
+new Chart(document.getElementById("billedChart"), {
+  type: "doughnut",
+  data: { labels: ["Billed (Done)","Unbilled (Active)"], datasets: [{ data: [285003,64427], backgroundColor: ["#1D9E75","#BA7517"], borderWidth: 0, hoverOffset: 6 }] },
+  options: { responsive:true, maintainAspectRatio:false, cutout:"72%", plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => " RM " + ctx.raw.toLocaleString() } } } }
+});
+
+new Chart(document.getElementById("contractSmall"), {
+  type: "bar",
+  data: {
+    labels: ["Mandarin Oriental","Calreno","Eastman Chem","Darcarion","Eastman TA0205","Jaewon","Flexsys","Eastman DPI","RM Leopad"],
+    datasets: [{ label:"RM", data:[198900,40315,34768,18360,12420,9540,4358,1134,486], backgroundColor:["#185FA5","#378ADD","#85B7EB","#1D9E75","#5DCAA5","#9FE1CB","#BA7517","#EF9F27","#FAC775"], borderRadius:3, borderSkipped:false }]
+  },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>" RM "+ctx.raw.toLocaleString()}}}, scales:{ x:{grid:{display:false},ticks:{font:{size:10},maxRotation:45,autoSkip:false}}, y:{ticks:{callback:v=>"RM "+(v/1000).toFixed(0)+"K"}} } }
+});
+
+new Chart(document.getElementById("contractFull"), {
+  type: "bar",
+  data: {
+    labels: ["Mandarin Oriental KL","Calreno (NDT Furnace)","Eastman Chemical (Coil)","Darcarion (Air Receiver)","Eastman (TA0205)","Jaewon (UTTM)","Flexsys (Boiler)","Eastman (DPI)","RM Leopad (UTIM)"],
+    datasets: [{ label:"Est. Value (RM)", data:[198900,40315,34768,18360,12420,9540,4358,1134,486], backgroundColor:["#185FA5","#378ADD","#85B7EB","#1D9E75","#5DCAA5","#9FE1CB","#BA7517","#EF9F27","#FAC775"], borderRadius:3, borderSkipped:false }]
+  },
+  options: { indexAxis:"y", responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>" RM "+ctx.raw.toLocaleString()}}}, scales:{ x:{ticks:{callback:v=>"RM "+(v/1000).toFixed(0)+"K"}}, y:{grid:{display:false},ticks:{font:{size:11}}} } }
+});
+
+new Chart(document.getElementById("funnelChart"), {
+  type: "bar",
+  data: { labels: ["In Hand","Submitted","Failed / Declined"], datasets: [{ data:[4,18,6], backgroundColor:["#185FA5","#1D9E75","#E24B4A"], borderRadius:4, borderSkipped:false }] },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>" "+ctx.raw+" tenders"}}}, scales:{ x:{grid:{display:false},ticks:{autoSkip:false}}, y:{ticks:{stepSize:5}} } }
+});
+
+new Chart(document.getElementById("declineChart"), {
+  type: "pie",
+  data: { labels: ["No reason captured","Not interested","Missing capability"], datasets: [{ data:[4,1,1], backgroundColor:["#E24B4A","#BA7517","#7F77DD"], borderWidth:0 }] },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>" "+ctx.raw+" tenders"}} } }
+});
+</script>
+</body>
+</html>
