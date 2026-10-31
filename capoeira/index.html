@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important}body{margin:0}</style>
+</head>
+<body>
+<title>Roda Songbook</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: songbook index rail on the left, the open song on the right; stacks to one column on phones. */
+:root {
+  --bg: #f3f5f1;
+  --panel: #ffffff;
+  --ink: #17251f;
+  --muted: #5a6b62;
+  --line: #d9e0da;
+  --accent: #1f6b4a;      /* berimbau-verde */
+  --accent-ink: #ffffff;
+  --gold: #b8860b;        /* dendê */
+  --chip-c: #1f6b4a;
+  --chip-s: #a4462a;
+  --chip-m: #4b4c9a;
+  --hover: #e8eee9;
+  --paper: #ffffff;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1613; --panel: #16201c; --ink: #e6efe9; --muted: #95a89d; --line: #27352e;
+    --accent: #5cc493; --accent-ink: #0b1310; --gold: #e0b44c;
+    --chip-c: #5cc493; --chip-s: #e98a6c; --chip-m: #9d9ff0; --hover: #1d2a24; --paper: #f4f4f0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1613; --panel: #16201c; --ink: #e6efe9; --muted: #95a89d; --line: #27352e;
+  --accent: #5cc493; --accent-ink: #0b1310; --gold: #e0b44c;
+  --chip-c: #5cc493; --chip-s: #e98a6c; --chip-m: #9d9ff0; --hover: #1d2a24; --paper: #f4f4f0;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5;
+  display: flex; flex-direction: column;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.top {
+  padding-block: 14px; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 12px 20px;
+  align-items: center; justify-content: space-between;
+}
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand svg { flex: none; }
+.brand h1 { font-family: var(--display); font-weight: 800; font-size: 1.45rem; margin: 0; letter-spacing: -0.01em; line-height: 1.1; }
+.brand p { margin: 0; color: var(--muted); font-size: 0.85rem; }
+.pdfstate { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 0.9rem; }
+.pill { font-family: var(--mono); font-size: 0.75rem; padding: 3px 9px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); }
+.pill.ok { border-color: var(--accent); color: var(--accent); }
+button, .btn {
+  font: inherit; font-weight: 600; font-size: 0.9rem; cursor: pointer; border-radius: 8px; padding: 7px 14px;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); text-decoration: none;
+  display: inline-flex; align-items: center; gap: 8px; line-height: 1.2;
+}
+button.ghost, .btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+button:focus-visible, .btn:focus-visible, input:focus-visible, .song:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.app { flex: 1; display: grid; grid-template-columns: minmax(280px, 360px) 1fr; min-height: 0; }
+aside.index { border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; background: var(--panel); }
+.filters { padding-block: 14px 10px; display: grid; gap: 10px; border-bottom: 1px solid var(--line); }
+#q {
+  width: 100%; font: inherit; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+}
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-radius: 99px; background: transparent; color: var(--muted); border: 1px solid var(--line); }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.count { font-size: 0.8rem; color: var(--muted); font-family: var(--mono); }
+.list { overflow-y: auto; flex: 1; min-height: 0; padding-block: 6px 24px; }
+.letter { font-family: var(--display); font-weight: 700; color: var(--gold); font-size: 0.85rem; padding: 12px 0 2px; letter-spacing: 0.08em; }
+.song {
+  display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; width: 100%; text-align: left; background: transparent;
+  border: 0; border-radius: 8px; padding: 8px 10px; color: var(--ink); font-weight: 400; margin-inline: -10px; width: calc(100% + 20px);
+}
+.song:hover { background: var(--hover); }
+.song[aria-current="true"] { background: var(--hover); box-shadow: inset 3px 0 0 var(--accent); }
+.song .t { font-weight: 600; font-size: 0.97rem; min-width: 0; }
+.song .e { grid-column: 1; color: var(--muted); font-size: 0.85rem; font-style: italic; min-width: 0; }
+.song .k { grid-row: 1 / span 2; grid-column: 2; align-self: center; display: flex; gap: 6px; align-items: center; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot.c { background: var(--chip-c); } .dot.s { background: var(--chip-s); } .dot.m { background: var(--chip-m); }
+.star { color: var(--gold); font-size: 0.9rem; }
+.hit { font-size: 0.78rem; color: var(--muted); grid-column: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hit mark { background: color-mix(in srgb, var(--gold) 35%, transparent); color: inherit; border-radius: 2px; }
+main.detail { overflow-y: auto; min-height: 0; padding-block: 24px 48px; }
+.detail-inner { max-width: 880px; margin: 0 auto; display: grid; gap: 18px; }
+.back { display: none; }
+.eyebrow { display: flex; gap: 10px; align-items: center; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); flex-wrap: wrap; }
+.eyebrow .sec { color: var(--sec, var(--accent)); }
+h2.title { font-family: var(--display); font-weight: 800; font-size: clamp(1.8rem, 4vw, 2.7rem); line-height: 1.05; margin: 4px 0 0; text-wrap: balance; letter-spacing: -0.015em; }
+.subtitle { font-size: 1.15rem; color: var(--muted); font-style: italic; margin: 6px 0 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn.yt { background: #c4302b; border-color: #c4302b; color: #fff; }
+.btn.sp { background: #1db954; border-color: #1db954; color: #08130c; }
+.btn svg { width: 18px; height: 18px; flex: none; }
+.listen-note { font-size: 0.82rem; color: var(--muted); margin: -8px 0 0; }
+.sheet { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 10px; }
+.sheet canvas { width: 100%; height: auto; display: block; background: var(--paper); border-radius: 6px; }
+.sheet .src { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.drop {
+  border: 2px dashed var(--line); border-radius: 12px; padding: 28px 20px; text-align: center; display: grid; gap: 10px; justify-items: center;
+  background: var(--panel);
+}
+.drop.over { border-color: var(--accent); background: var(--hover); }
+.drop h3 { font-family: var(--display); margin: 0; font-size: 1.2rem; }
+.drop p { margin: 0; color: var(--muted); max-width: 52ch; }
+.navrow { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.credit { font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
+.credit p { margin: 0 0 6px; max-width: 70ch; }
+.err { color: var(--chip-s); font-size: 0.9rem; }
+@media (max-width: 760px) {
+  .app { grid-template-columns: 1fr; }
+  aside.index { border-right: 0; }
+  body.show-detail aside.index { display: none; }
+  body:not(.show-detail) main.detail { display: none; }
+  .back { display: inline-flex; justify-self: start; }
+  .sheet { padding: 8px; }
+}
+@media (prefers-reduced-motion: no-preference) { .song, button, .btn { transition: background-color .15s, border-color .15s; } }
+</style>
+
+<header class="top wrap">
+  <div class="brand">
+    <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+      <path d="M8 36 C 14 22, 22 10, 34 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M8 36 L 34 4" fill="none" stroke="var(--gold)" stroke-width="1" />
+      <circle cx="12.5" cy="28" r="6" fill="var(--accent)"/>
+      <circle cx="12.5" cy="28" r="2.4" fill="var(--panel)"/>
+    </svg>
+    <div>
+      <h1>Roda Songbook</h1>
+      <p>Songs from the Capoeira Song Compendium, with translations and places to listen</p>
+    </div>
+  </div>
+  <div class="pdfstate">
+    <span id="pdfPill" class="pill">Compendium PDF not loaded</span>
+    <button id="loadBtn" class="ghost" type="button">Load PDF</button>
+    <input id="file" type="file" accept="application/pdf,.pdf" hidden>
+  </div>
+</header>
+
+<div class="app">
+  <aside class="index">
+    <div class="filters wrap">
+      <input id="q" type="search" placeholder="Search songs or lyrics" autocomplete="off" aria-label="Search songs">
+      <div class="chips" role="group" aria-label="Filter songs">
+        <button class="chip" type="button" data-f="all" aria-pressed="true">All</button>
+        <button class="chip" type="button" data-f="c" aria-pressed="false">Capoeira</button>
+        <button class="chip" type="button" data-f="s" aria-pressed="false">Samba de roda</button>
+        <button class="chip" type="button" data-f="m" aria-pressed="false">Maculelê</button>
+        <button class="chip" type="button" data-f="fav" aria-pressed="false">★ Saved</button>
+      </div>
+      <div class="count" id="count"></div>
+    </div>
+    <nav class="list wrap" id="list" aria-label="Songs"></nav>
+  </aside>
+  <main class="detail wrap" id="detail"></main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+// Index only: titles, translated titles, section and where each song sits in the PDF (page, column, y-range).
+// Lyrics are rendered from the viewer's own copy of the compendium.
+const SONGS = [{"t":"Abalou capoeira, abalou","e":"It shook capoeira, shook.","s":"c","p":1,"g":[[6,0,114.0,213.9]]},{"t":"A Bananeira Caiu","e":"The Banana Tree fell","s":"c","p":1,"g":[[6,0,331.3,493.2]]},{"t":"A canoa virou, marinheiro","e":"The canoe capsized, sailor","s":"c","p":1,"g":[[6,1,45.0,283.5]]},{"t":"Adão, Adão","e":"Adam, Adam","s":"c","p":1,"g":[[6,1,312.9,540]]},{"t":"A Capoeira Meu Amor","e":"Capoeira My Love","s":"c","p":2,"g":[[7,0,25.2,213.6]]},{"t":"A Hora E Essa","e":"It’s now the time","s":"c","p":2,"g":[[7,0,318.4,460.9]]},{"t":"Ai ai ai ai (São Bento me charma)","e":"Ai ai ai ai (St. Benedict calls me)","s":"c","p":2,"g":[[7,1,25.2,177.9]]},{"t":"Ai ai Aide","e":"Ai ai Aide","s":"c","p":2,"g":[[7,1,282.7,459.7]]},{"t":"Ajuda eu berimbau","e":"The berimbau helps me","s":"c","p":3,"g":[[8,0,25.2,112.5]]},{"t":"Alô Maria","e":"Alô Maria","s":"c","p":3,"g":[[8,0,204.6,540]]},{"t":"A Manteiga Derramou","e":"The Butter Spilled","s":"c","p":3,"g":[[8,1,25.2,448.2]]},{"t":"Angola ê ê, Angola","e":"Angola ê ê, Angola","s":"c","p":4,"g":[[9,0,25.2,459.7]]},{"t":"Apanha a laranja no chão, tico tico","e":"Grab the orange off the ground, tico-tico","s":"c","p":4,"g":[[9,1,25.2,298.7]]},{"t":"Aruanda ê","e":"Aruanda ê","s":"c","p":5,"g":[[10,0,25.2,349.9]]},{"t":"Bahia Axé","e":"Bahia Axe","s":"c","p":5,"g":[[10,1,25.2,397.1]]},{"t":"A Benguela","e":"A Benguela","s":"c","p":6,"g":[[11,0,25.2,518.1],[11,1,20,97.5]]},{"t":"Bahia começa com B","e":"Bahia it starts with B","s":"c","p":7,"g":[[12,0,25.2,264.3]]},{"t":"Bahia De Qualquer Maneira","e":"Bahia by any means possible","s":"c","p":7,"g":[[12,1,25.2,188.4]]},{"t":"Bate palma pra ele","e":"Clap for him","s":"c","p":7,"g":[[12,1,318.4,456.7]]},{"t":"Boa Viagem","e":"Bon Voyage","s":"c","p":8,"g":[[13,0,25.2,315.3]]},{"t":"Cajuê","e":"Cajuê","s":"c","p":8,"g":[[13,1,25.2,225.1]]},{"t":"Camungerê","e":"Camungerê","s":"c","p":9,"g":[[14,0,25.2,237.7]]},{"t":"Canarinho da alemanha","e":"German canary","s":"c","p":9,"g":[[14,1,25.2,416.0]]},{"t":"Capoeira De São Salvador","e":"Capoeira of Salvador","s":"c","p":10,"g":[[15,0,25.2,540],[15,1,20,540]]},{"t":"Capoeira de verdade / Isso é Coisa da Gente","e":"True Capoeira / This thing belongs to us","s":"c","p":11,"g":[[16,0,25.2,443.6]]},{"t":"Capoeira E Defesa Ataque","e":"It’s defence and attack","s":"c","p":12,"g":[[17,1,25.2,490.7],[18,0,20,135.5]]},{"t":"Capoeira é da nossa cor","e":"Capoeira is our colour","s":"c","p":13,"g":[[18,0,267.8,519.5]]},{"t":"Catarina (Rala Côco)","e":"Catarina (Grate coconut)","s":"c","p":13,"g":[[18,1,25.2,312.0]]},{"t":"Chora Viola","e":"The Viola cries","s":"c","p":14,"g":[[19,0,25.2,201.0]]},{"t":"Chuê chuê chuê chuà","e":"Crunch, crunch, crunch....","s":"c","p":14,"g":[[19,1,25.2,245.8]]},{"t":"Cobra Verde","e":"Green Snake","s":"c","p":15,"g":[[20,0,25.2,112.5]]},{"t":"Cruz-Credo, Ave Maria","e":"Cross-confession, Heil Maria","s":"c","p":15,"g":[[20,0,280.5,506.9]]},{"t":"Cuidado Moço","e":"Take care young man","s":"c","p":15,"g":[[20,1,25.2,453.9],[21,0,20,280.9]]},{"t":"Dà Dà Dà No Negro","e":"Get get get the negro","s":"c","p":16,"g":[[21,1,25.2,226.3]]},{"t":"Dalila","e":"Dalila","s":"c","p":16,"g":[[21,1,305.8,531.0]]},{"t":"Devagar, Devagar","e":"Slowly, Slowly","s":"c","p":17,"g":[[22,0,25.2,298.1]]},{"t":"Dona Alice","e":"Ms Alice","s":"c","p":17,"g":[[22,1,25.2,352.7]]},{"t":"Dona Maria Como Vai Você","e":"Ms Maria, how do you do?","s":"c","p":18,"g":[[23,0,25.2,213.6]]},{"t":"Dona Maria Do Camboatá","e":"Ms Maria of Camboatá","s":"c","p":18,"g":[[23,1,25.2,237.7],[24,0,20,289.5]]},{"t":"É De Couro De Boi","e":"É de couro de boi","s":"c","p":19,"g":[[24,0,379.3,456.3]]},{"t":"E' De Manhã, Idalina Tà Me Chamando","e":"In the morning, idalina is calling me","s":"c","p":19,"g":[[24,1,25.2,329.8]]},{"t":"Eu Já Vou A Beleza","e":"I already I go the beauty","s":"c","p":20,"g":[[25,0,25.2,163.1]]},{"t":"É legal, é legal","e":"It’s great, It’s great","s":"c","p":20,"g":[[25,0,381.7,494.3]]},{"t":"Ê Paraná. Ê Paraná","e":"It’s Paraná, it’s Paraná","s":"c","p":20,"g":[[25,1,25.2,264.7]]},{"t":"É o Mar vai virar Sertão","e":"The Sea turns to the Hinterland","s":"c","p":21,"g":[[26,0,25.2,256.1]]},{"t":"É Só Prestar Atenção","e":"Pay Attention","s":"c","p":21,"g":[[26,1,25.2,378.0]]},{"t":"Eu sou angoleiro","e":"I am an angoleiro","s":"c","p":22,"g":[[27,0,25.2,201.0]]},{"t":"Eu Sou Capoeira Tambem Sou Maculelê","e":"I am capoeira I am also maculelê","s":"c","p":22,"g":[[27,1,25.2,314.8]]},{"t":"Eu tenho que ir me embora","e":"I Have To Go Away","s":"c","p":23,"g":[[28,0,25.2,302.2]]},{"t":"Eu Vi A Cutia Com Coco No Dente","e":"I saw a cutia with coconut in the teeth","s":"c","p":23,"g":[[28,1,25.2,305.6]]},{"t":"Foi No Clarão Da Lua","e":"It was in the moonlight","s":"c","p":24,"g":[[29,0,25.2,352.8]]},{"t":"Gunga é meu","e":"Gunga is mine","s":"c","p":25,"g":[[30,0,25.2,285.5]]},{"t":"Iê Capoeira, Iê Capoeirá","e":"Iê Capoeira Iê Capoeira","s":"c","p":25,"g":[[30,1,25.2,428.6]]},{"t":"Iaiaioio","e":"Iaiáioiô","s":"c","p":26,"g":[[31,0,25.2,540],[31,1,20,110.2]]},{"t":"Iê Parana","e":"Iê Parana","s":"c","p":27,"g":[[32,0,25.2,429.8]]},{"t":"Jogar Capoeira De Angola","e":"Playing Capoeira Angola","s":"c","p":27,"g":[[32,1,25.2,479.3],[33,0,20,206.7]]},{"t":"Jogo de Dentro Jogo De Fora","e":"Inside game, outside game","s":"c","p":29,"g":[[34,0,25.2,209.0]]},{"t":"lavadeira","e":"Laundry woman","s":"c","p":29,"g":[[34,1,25.2,350.5]]},{"t":"La Vai Viola","e":"There goes the viola","s":"c","p":30,"g":[[35,0,25.2,163.1]]},{"t":"Lá vem vindo","e":"There he comes","s":"c","p":30,"g":[[35,0,318.4,468.9]]},{"t":"Leva morena me leva","e":"Take me morena, take me","s":"c","p":30,"g":[[35,1,25.2,459.7]]},{"t":"Le La Lae Lae La","e":"Le La Lae Lae La","s":"c","p":31,"g":[[36,0,25.2,454.0]]},{"t":"Luanda é meu boi","e":"Luanda is my ox","s":"c","p":32,"g":[[37,0,25.2,403.4]]},{"t":"Maculelê Maracatú","e":"Maculelê Maracatú","s":"c","p":32,"g":[[37,1,25.2,417.2]]},{"t":"Marinheiro só","e":"Lonely Sailor","s":"c","p":33,"g":[[38,0,25.2,365.4]]},{"t":"Meu Berimbau, Instrumento Genial","e":"My berimbau, Brilliant Instrument","s":"c","p":34,"g":[[39,0,25.2,190.7]]},{"t":"Moleque E Tu","e":"You are a scoundrel","s":"c","p":34,"g":[[39,1,25.2,429.8]]},{"t":"Nhem Nhem Nhem","e":"Nhem Nhem Nhem","s":"c","p":35,"g":[[40,0,25.2,295.3]]},{"t":"No Mercado modelo","e":"In Mercado modelo","s":"c","p":35,"g":[[40,0,425.4,537.8]]},{"t":"Ó Ligeiro","e":"Oh quick","s":"c","p":35,"g":[[40,1,25.2,248.7]]},{"t":"Oi Nega que vende aí","e":"Oi Woman who sells there","s":"c","p":35,"g":[[40,1,390.9,540]]},{"t":"Ô â ô â ei","e":"Oh ah oh ah eh","s":"c","p":36,"g":[[41,0,25.2,418.3]]},{"t":"Oi Sim Sim Sim","e":"Oh Yes, Yes, Yes","s":"c","p":36,"g":[[41,1,25.2,427.5]]},{"t":"Olha O Nego sinhà","e":"Look at the negro, lady","s":"c","p":37,"g":[[42,0,25.2,540]]},{"t":"Olha Pomba voôu","e":"The dove flew","s":"c","p":37,"g":[[42,1,25.2,252.7]]},{"t":"O Me Da Meu Dinheiro","e":"Give me my money","s":"c","p":38,"g":[[43,0,25.2,264.2]]},{"t":"Onça Morreu","e":"The Jaguar Died","s":"c","p":38,"g":[[43,0,444.9,540]]},{"t":"Zum, Zum, Zum","e":"Buzz, Buzz, Buzz","s":"c","p":38,"g":[[43,1,25.2,365.4]]},{"t":"Onde Vai Caiman","e":"Where is Caiman going?","s":"c","p":39,"g":[[44,0,25.2,127.4]]},{"t":"O que é berimbau?","e":"What is a berimbau?","s":"c","p":39,"g":[[44,0,356.4,471.2]]},{"t":"O Capoeira e o Pescador","e":"Capoeira and the Fisherman","s":"c","p":39,"g":[[44,1,25.2,453.9],[45,0,20,197.0]]},{"t":"Parabéns pra você","e":"Congratulations to you","s":"c","p":40,"g":[[45,0,318.4,482.7]]},{"t":"Para Roda Capoeira","e":"Stop the roda","s":"c","p":41,"g":[[46,0,25.2,390.8]]},{"t":"Paraná é","e":"Paraná é","s":"c","p":41,"g":[[46,1,25.2,416.0]]},{"t":"Pela Capoeira Eu Poder Jogar","e":"Through Capoeira I can play","s":"c","p":42,"g":[[47,1,25.2,276.9]]},{"t":"Pisa Caboclo","e":"Step Caboclo","s":"c","p":43,"g":[[48,0,25.2,414.8]]},{"t":"Pisa No Massapé Escorrega","e":"Walk on Massapé and Slip","s":"c","p":43,"g":[[48,1,25.2,175.7]]},{"t":"Por Favor Não Maltrate Esse Nego","e":"Please don’t mistreat this negro","s":"c","p":44,"g":[[49,0,25.2,203.3]]},{"t":"Pra Lavar Minha Roupa Não Tem Sabão","e":"I have no soap to wash my clothes","s":"c","p":44,"g":[[49,1,25.2,342.4]]},{"t":"Preta Calunga","e":"It’s black, Calunga","s":"c","p":45,"g":[[50,0,25.2,247.0]]},{"t":"Princesa Isabel, Princesa Isabel","e":"Princess Isabel, Princess Isabel","s":"c","p":45,"g":[[50,1,25.2,520.6]]},{"t":"Quebra Gereba","e":"Break It Gereba","s":"c","p":46,"g":[[51,0,37.8,326.3]]},{"t":"Quem Jogo","e":"He who plays","s":"c","p":46,"g":[[51,1,34.4,187.1]]},{"t":"Quem E Voce","e":"Who are you?","s":"c","p":47,"g":[[52,0,25.2,302.2]]},{"t":"Quem Vem Lá Sou Eu","e":"Who goes there? It’s me","s":"c","p":47,"g":[[52,1,25.2,378.1]]},{"t":"Roda maravilhosa","e":"Wonderful Roda","s":"c","p":48,"g":[[53,0,25.2,440.1]]},{"t":"Sai Sai Catarina","e":"Sai Sai Catarina","s":"c","p":49,"g":[[54,0,25.2,188.4]]},{"t":"Salomê, Salomê","e":"Salomê, Salomê","s":"c","p":49,"g":[[54,0,358.6,471.2]]},{"t":"Santa Maria mãe de Deus","e":"Saint Mary Mother Of God","s":"c","p":49,"g":[[54,1,25.2,528.2]]},{"t":"Senhor Sao Bento","e":"Mr Saint Benedict","s":"c","p":50,"g":[[55,0,25.2,257.3]]},{"t":"Sim sinha, Sim Sinho","e":"Yes Mrs, Yes Mr","s":"c","p":50,"g":[[55,0,425.4,539.0]]},{"t":"Sou Capoeira E Pego Na Viola","e":"I am Capoeira and I take the viola","s":"c","p":50,"g":[[55,1,25.2,412.0]]},{"t":"Solta A Mandinga","e":"Unleash the Mandinga","s":"c","p":51,"g":[[56,0,25.2,209.0]]},{"t":"Sou Angoleiro","e":"I am Angoleiro","s":"c","p":51,"g":[[56,0,275.8,512.6]]},{"t":"Tabareu Que Vem Do Sertao","e":"Tabareu That Comes From The Hinterland","s":"c","p":51,"g":[[56,1,25.2,187.1]]},{"t":"Tava Lá Em Casa","e":"I was there in the house","s":"c","p":51,"g":[[56,1,279.3,540]]},{"t":"Tava lá na beira do Mar","e":"I was at the seashore","s":"c","p":52,"g":[[57,0,25.2,213.6]]},{"t":"Tem Dende, Tem Dende","e":"Has dendê, Has dendê","s":"c","p":52,"g":[[57,1,25.2,192.9]]},{"t":"Tim, Tim Tim Aruandê","e":"Tim, Tim Tim Aruandê","s":"c","p":52,"g":[[57,1,312.7,513.8]]},{"t":"Tô dormindo tô sonhando","e":"I am sleeping i am dreaming","s":"c","p":53,"g":[[58,0,25.2,429.8]]},{"t":"Troca Mão Pelo Pé","e":"Exchange Hand For Foot","s":"c","p":53,"g":[[58,1,25.2,239.0]]},{"t":"Um pouquinho de dendê","e":"A little dendê","s":"c","p":54,"g":[[59,0,25.2,264.3]]},{"t":"Uma Volta Só","e":"Once Again","s":"c","p":54,"g":[[59,1,25.2,250.4]]},{"t":"Um, dois, tres","e":"One, two, three","s":"c","p":54,"g":[[59,1,405.8,528.2]]},{"t":"Brincadeira Mandinga","e":"Lets start a playful game","s":"c","p":55,"g":[[60,0,25.2,314.9]]},{"t":"Vem Começo A Roda Io Io","e":"I’m going to start the roda","s":"c","p":55,"g":[[60,1,25.2,365.4]]},{"t":"Vinha da Bahia pra lhe ver","e":"I came from Bahia to see you","s":"c","p":56,"g":[[61,0,25.2,479.3],[61,1,20,221.6]]},{"t":"Você Que É Forte","e":"You Strong One","s":"c","p":57,"g":[[62,0,25.2,540]]},{"t":"Xarél, Xereré","e":"Xarél, Xereré","s":"c","p":57,"g":[[62,1,25.2,99.8]]},{"t":"Xô xô meu canario","e":"Shoo, shoo my canary","s":"c","p":57,"g":[[62,1,255.2,370.4]]},{"t":"Lê Lê Lê Baiana","e":"Lê Lê Lê Baiana","s":"s","p":58,"g":[[63,0,81.6,282.6]]},{"t":"O Levanta Saia Mulata","e":"Lift your skirt up girl","s":"s","p":58,"g":[[63,0,349.5,507.7]]},{"t":"Praia Da Amaralina","e":"Amaralina Beach","s":"s","p":58,"g":[[63,1,25.2,286.0]]},{"t":"Sereia Sereia","e":"Mermaid, Mermaid","s":"s","p":59,"g":[[64,0,25.2,147.5]]},{"t":"Boa noite pra quem é de boa noite","e":"Good night for whoever is from the good night","s":"m","p":59,"g":[[64,0,279.3,482.7]]},{"t":"Cabana De Guerreiro","e":"Warrior’s hut","s":"m","p":59,"g":[[64,1,25.2,352.8]]},{"t":"E na hora ê","e":"The hour is here","s":"m","p":60,"g":[[65,0,25.2,206.7]]},{"t":"Tindolelê auê Cauiza","e":"Tindolelê auê Cauiza","s":"m","p":60,"g":[[65,0,248.3,540]]},{"t":"Maculele Jurou Vinganca","e":"Maculele Jurou Vinganca","s":"m","p":60,"g":[[65,1,25.2,289.5]]},{"t":"Sou Eu Maculele","e":"It’s me, Maculele","s":"m","p":60,"g":[[65,1,356.4,443.6]]}];
+const SECTION = { c: "Capoeira song", s: "Samba de roda", m: "Maculelê" };
+const SECVAR = { c: "var(--chip-c)", s: "var(--chip-s)", m: "var(--chip-m)" };
+const PDF_PAGES = 91, HALF_W = 421;
+
+const $ = (s) => document.querySelector(s);
+const state = { filter: "all", q: "", current: 0, pdf: null, text: null, favs: new Set() };
+try { state.favs = new Set(JSON.parse(localStorage.getItem("roda-favs") || "[]")); } catch (e) {}
+const saveFavs = () => { try { localStorage.setItem("roda-favs", JSON.stringify([...state.favs])); } catch (e) {} };
+
+const norm = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const cleanTitle = (t) => t.replace(/\(.*?\)/g, "").replace(/[*?]/g, "").trim();
+const ytUrl = (s) => "https://www.youtube.com/results?search_query=" + encodeURIComponent(cleanTitle(s.t) + " capoeira" + (s.s === "m" ? " maculelê" : s.s === "s" ? " samba de roda" : ""));
+const spUrl = (s) => "https://open.spotify.com/search/" + encodeURIComponent(cleanTitle(s.t) + " capoeira");
+
+const YT_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12 31 31 0 0 0 1 16.8a3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1c.4-1.6.5-4.8.5-4.8s0-3.2-.5-4.8ZM9.7 15.1V8.9L15.5 12l-5.8 3.1Z"/></svg>';
+const SP_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 1a11 11 0 1 0 0 22 11 11 0 0 0 0-22Zm5 15.9a.7.7 0 0 1-.9.2c-2.6-1.6-5.8-1.9-9.6-1a.7.7 0 1 1-.3-1.3c4.2-1 7.7-.6 10.6 1.2.3.2.4.6.2.9Zm1.3-2.9a.9.9 0 0 1-1.2.3c-2.9-1.8-7.4-2.3-10.9-1.3a.9.9 0 1 1-.5-1.7c4-1.2 9-.6 12.3 1.5.4.2.5.8.3 1.2Zm.1-3c-3.5-2.1-9.3-2.3-12.6-1.3a1 1 0 1 1-.6-2c3.9-1.2 10.3-.9 14.3 1.5a1 1 0 0 1-1.1 1.8Z"/></svg>';
+
+// ---------- index list ----------
+function matches(i) {
+  const s = SONGS[i];
+  if (state.filter === "fav" && !state.favs.has(i)) return null;
+  if (["c", "s", "m"].includes(state.filter) && s.s !== state.filter) return null;
+  if (!state.q) return { hit: "" };
+  const q = norm(state.q);
+  if (norm(s.t).includes(q) || norm(s.e).includes(q)) return { hit: "" };
+  const body = state.text && state.text[i];
+  if (body) {
+    const n = norm(body), at = n.indexOf(q);
+    if (at >= 0) {
+      const a = Math.max(0, at - 18), b = Math.min(body.length, at + q.length + 30);
+      return { hit: (a ? "…" : "") + esc(body.slice(a, at)) + "<mark>" + esc(body.slice(at, at + q.length)) + "</mark>" + esc(body.slice(at + q.length, b)) + "…" };
+    }
+  }
+  return null;
+}
+function renderList() {
+  const order = SONGS.map((s, i) => i).sort((a, b) => {
+    const sa = "csm".indexOf(SONGS[a].s), sb = "csm".indexOf(SONGS[b].s);
+    return sa - sb || norm(SONGS[a].t).localeCompare(norm(SONGS[b].t));
+  });
+  let html = "", last = "", n = 0;
+  for (const i of order) {
+    const m = matches(i); if (!m) continue; n++;
+    const s = SONGS[i];
+    const head = s.s === "c" ? norm(s.t).replace(/^[^a-z]+/, "")[0].toUpperCase() : SECTION[s.s];
+    if (head !== last) { html += `<div class="letter">${esc(head)}</div>`; last = head; }
+    html += `<button class="song" type="button" data-i="${i}" ${i === state.current ? 'aria-current="true"' : ""}>
+      <span class="t">${esc(s.t)}</span><span class="k">${state.favs.has(i) ? '<span class="star" aria-label="saved">★</span>' : ""}<span class="dot ${s.s}" title="${SECTION[s.s]}"></span></span>
+      ${s.e && norm(s.e) !== norm(s.t) ? `<span class="e">${esc(s.e)}</span>` : ""}
+      ${m.hit ? `<span class="hit">${m.hit}</span>` : ""}</button>`;
+  }
+  $("#list").innerHTML = html || '<p class="count">No songs match. Try fewer words, or load the PDF to search the lyrics too.</p>';
+  $("#count").textContent = `${n} of ${SONGS.length} songs` + (state.q && !state.text ? " · title search only until the PDF is loaded" : "");
+}
+$("#list").addEventListener("click", (e) => {
+  const b = e.target.closest(".song"); if (!b) return;
+  location.hash = "song-" + b.dataset.i;
+});
+$("#q").addEventListener("input", (e) => { state.q = e.target.value.trim(); renderList(); });
+document.querySelectorAll(".chip").forEach((c) => c.addEventListener("click", () => {
+  state.filter = c.dataset.f;
+  document.querySelectorAll(".chip").forEach((x) => x.setAttribute("aria-pressed", x === c ? "true" : "false"));
+  renderList();
+}));
+
+// ---------- detail ----------
+function renderDetail() {
+  const i = state.current, s = SONGS[i];
+  const prev = (i + SONGS.length - 1) % SONGS.length, next = (i + 1) % SONGS.length;
+  $("#detail").innerHTML = `<div class="detail-inner" style="--sec:${SECVAR[s.s]}">
+    <button class="back ghost" type="button" id="back">← All songs</button>
+    <div>
+      <div class="eyebrow"><span class="sec">● ${SECTION[s.s]}</span><span>Compendium p. ${s.p}</span></div>
+      <h2 class="title">${esc(s.t)}</h2>
+      ${s.e && norm(s.e) !== norm(s.t) ? `<p class="subtitle">${esc(s.e)}</p>` : ""}
+    </div>
+    <div class="actions">
+      <a class="btn yt" href="${ytUrl(s)}" target="_blank" rel="noopener">${YT_SVG}Find on YouTube</a>
+      <a class="btn sp" href="${spUrl(s)}" target="_blank" rel="noopener">${SP_SVG}Find on Spotify</a>
+      <button class="ghost" type="button" id="fav">${state.favs.has(i) ? "★ Saved" : "☆ Save"}</button>
+    </div>
+    <p class="listen-note">Links open a search for this title. Versions differ from group to group, so pick the recording that matches the way your roda sings it.</p>
+    <div id="lyrics"></div>
+    <div class="navrow">
+      <a class="btn ghost" href="#song-${prev}">← ${esc(SONGS[prev].t)}</a>
+      <a class="btn ghost" href="#song-${next}">${esc(SONGS[next].t)} →</a>
+    </div>
+    <div class="credit">
+      <p>Lyrics, translations and notes: <em>Capoeira Song Compendium</em> v1.0 by Mathew Brigham (Espaguete), May 2006. The author allows free distribution and asks that nobody make money from it.</p>
+      <p>This page keeps only the song index. Lyrics show from your own copy of the PDF, read in your browser and never uploaded.</p>
+    </div>
+  </div>`;
+  $("#back").onclick = () => { document.body.classList.remove("show-detail"); };
+  $("#fav").onclick = () => { state.favs.has(i) ? state.favs.delete(i) : state.favs.add(i); saveFavs(); renderDetail(); renderList(); };
+  renderLyrics();
+}
+
+const pageCache = new Map();
+async function renderPage(p, scale) {
+  const key = p + ":" + scale;
+  if (pageCache.has(key)) return pageCache.get(key);
+  const job = (async () => {
+    const page = await state.pdf.getPage(p);
+    const vp = page.getViewport({ scale });
+    const c = document.createElement("canvas");
+    c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+    await page.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise;
+    return c;
+  })();
+  pageCache.set(key, job);
+  if (pageCache.size > 12) pageCache.delete(pageCache.keys().next().value);
+  return job;
+}
+let lyricsToken = 0;
+async function renderLyrics() {
+  const box = $("#lyrics"); if (!box) return;
+  const s = SONGS[state.current];
+  if (!state.pdf) {
+    box.innerHTML = `<div class="drop" id="drop">
+      <h3>Add the compendium to see the lyrics</h3>
+      <p>Drop <em>Capoeira_Song_Compendium_Version_1.0_International.pdf</em> here or choose it from your files. You'll see the Portuguese, the English translation and the notes for each song. Your browser remembers the file, so you only add it once.</p>
+      <button type="button" id="pick">Choose PDF</button>
+      <div class="err" id="err"></div>
+    </div>`;
+    $("#pick").onclick = () => $("#file").click();
+    wireDrop($("#drop"));
+    return;
+  }
+  const token = ++lyricsToken;
+  box.innerHTML = `<div class="sheet" aria-label="Lyrics and translation from the compendium"><div class="src"><span>Português · English</span><span>rendering…</span></div></div>`;
+  const sheet = box.firstElementChild;
+  const width = Math.min(sheet.clientWidth - 32, 880) || 600;
+  const scale = Math.min(4, Math.max(1.5, (width / HALF_W) * (window.devicePixelRatio || 1)));
+  const out = [];
+  for (const [p, h, y0, y1] of s.g) {
+    const full = await renderPage(p, scale);
+    if (token !== lyricsToken) return;
+    const c = document.createElement("canvas");
+    c.width = Math.round(HALF_W * scale); c.height = Math.round((y1 - y0) * scale);
+    c.getContext("2d").drawImage(full, h * HALF_W * scale, y0 * scale, c.width, c.height, 0, 0, c.width, c.height);
+    c.setAttribute("role", "img");
+    c.setAttribute("aria-label", `${s.t}, compendium page ${p - 5}`);
+    out.push(c);
+  }
+  sheet.innerHTML = `<div class="src"><span>Português · English · bold lines are the chorus (coro)</span><span>p. ${[...new Set(s.g.map((g) => g[0] - 5))].join("–")}</span></div>`;
+  out.forEach((c) => sheet.appendChild(c));
+}
+
+// ---------- PDF loading ----------
+if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+function idb(mode, fn) {
+  return new Promise((res, rej) => {
+    let req;
+    try { req = indexedDB.open("roda-songbook", 1); } catch (e) { return rej(e); }
+    req.onupgradeneeded = () => req.result.createObjectStore("files");
+    req.onerror = () => rej(req.error);
+    req.onsuccess = () => {
+      try {
+        const tx = req.result.transaction("files", mode), st = tx.objectStore("files");
+        const r = fn(st); tx.oncomplete = () => res(r && r.result); tx.onerror = () => rej(tx.error);
+      } catch (e) { rej(e); }
+    };
+  });
+}
+async function openPdf(buf, remember) {
+  const errEl = $("#err");
+  try {
+    if (!window.pdfjsLib) throw new Error("The PDF reader didn't load. Check your connection and reload the page.");
+    const doc = await pdfjsLib.getDocument({ data: new Uint8Array(buf.slice(0)) }).promise;
+    if (doc.numPages !== PDF_PAGES) throw new Error(`This PDF has ${doc.numPages} pages. The songbook expects the 91-page Capoeira Song Compendium v1.0.`);
+    state.pdf = doc; pageCache.clear();
+    $("#pdfPill").textContent = "Compendium loaded"; $("#pdfPill").classList.add("ok");
+    $("#loadBtn").textContent = "Replace PDF";
+    if (remember) idb("readwrite", (st) => st.put(buf, "compendium")).catch(() => {});
+    renderLyrics();
+    indexText();
+  } catch (e) {
+    if (errEl) errEl.textContent = e.message || String(e);
+    else { $("#pdfPill").textContent = e.message || "Couldn't read that PDF"; }
+  }
+}
+async function indexText() {
+  const text = SONGS.map(() => "");
+  const byPage = new Map();
+  SONGS.forEach((s, i) => s.g.forEach((g) => { (byPage.get(g[0]) || byPage.set(g[0], []).get(g[0])).push([i, ...g]); }));
+  for (const [p, segs] of byPage) {
+    const page = await state.pdf.getPage(p);
+    const vp = page.getViewport({ scale: 1 });
+    const tc = await page.getTextContent();
+    for (const it of tc.items) {
+      if (!it.str || !it.str.trim()) continue;
+      const [x, y] = vp.convertToViewportPoint(it.transform[4], it.transform[5]);
+      const h = x < HALF_W ? 0 : 1, top = y - Math.abs(it.transform[3]) * 0.8;
+      for (const [i, , sh, y0, y1] of segs) if (sh === h && top >= y0 - 2 && top <= y1) { text[i] += it.str + " "; break; }
+    }
+  }
+  state.text = text.map((t) => t.replace(/\s+/g, " ").trim());
+  renderList();
+}
+function handleFile(f) {
+  if (!f) return;
+  f.arrayBuffer().then((b) => openPdf(b, true));
+}
+function wireDrop(el) {
+  ["dragenter", "dragover"].forEach((ev) => el.addEventListener(ev, (e) => { e.preventDefault(); el.classList.add("over"); }));
+  ["dragleave", "drop"].forEach((ev) => el.addEventListener(ev, (e) => { e.preventDefault(); el.classList.remove("over"); }));
+  el.addEventListener("drop", (e) => handleFile(e.dataTransfer.files[0]));
+}
+$("#loadBtn").onclick = () => $("#file").click();
+$("#file").onchange = (e) => handleFile(e.target.files[0]);
+document.addEventListener("dragover", (e) => e.preventDefault());
+document.addEventListener("drop", (e) => { e.preventDefault(); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+
+// ---------- routing ----------
+function route() {
+  const m = /^#song-(\d+)$/.exec(location.hash);
+  const i = m ? Math.min(SONGS.length - 1, +m[1]) : state.current;
+  state.current = i;
+  if (m) document.body.classList.add("show-detail");
+  renderDetail(); renderList();
+  const cur = document.querySelector('.song[aria-current="true"]');
+  if (cur && m) cur.scrollIntoView({ block: "nearest" });
+  $("#detail").scrollTop = 0;
+}
+window.addEventListener("hashchange", route);
+let resizeT; window.addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTimeout(() => { if (state.pdf) renderLyrics(); }, 250); });
+route();
+idb("readonly", (st) => st.get("compendium")).then((buf) => { if (buf) openPdf(buf, false); }).catch(() => {});
+</script>
+
+</body>
+</html>
