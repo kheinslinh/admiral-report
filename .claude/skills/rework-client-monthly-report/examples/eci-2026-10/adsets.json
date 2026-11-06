@@ -1,0 +1,87 @@
+[
+ {
+  "campaign": "ECI Engagement November Training Oct9-Oct19",
+  "adset": "ECI Engagement Cold November Training Oct9-Oct19 - 120250892114870043",
+  "short": "Engagement – November training",
+  "objective": "Engagement",
+  "start_at": "2026-10-09T17:30",
+  "end_at": "2026-10-19T23:59",
+  "spend": 148.18,
+  "impressions": 2081,
+  "reach": 1829,
+  "clicks": 103,
+  "meta_results": null,
+  "brings_messages": false,
+  "tracking_ids": [
+   "120250892267720043",
+   "120250892114860043"
+  ]
+ },
+ {
+  "campaign": "ECI Leads November Training Oct9-Oct19",
+  "adset": "ECI Leads Cold November Training Oct9-Oct19 - 120250929753580043",
+  "short": "Lead form – November training",
+  "objective": "Leads",
+  "start_at": "2026-10-12T14:03",
+  "end_at": "2026-10-19T23:59",
+  "spend": 245.02,
+  "impressions": 2432,
+  "reach": 2073,
+  "clicks": 108,
+  "meta_results": null,
+  "brings_messages": false,
+  "tracking_ids": [
+   "120250929753560043",
+   "120250929753570043"
+  ]
+ },
+ {
+  "campaign": "ECI Sales November Training Oct9-Oct19",
+  "adset": "Cold ECI Sales November Training Oct9-Oct19 - 120250944277660043",
+  "short": "Messenger – November training",
+  "objective": "Messages",
+  "start_at": "2026-10-01T00:00",
+  "end_at": "2026-10-19T23:59",
+  "spend": 389.56,
+  "impressions": 7832,
+  "reach": 7130,
+  "clicks": 284,
+  "meta_results": null,
+  "brings_messages": true,
+  "tracking_ids": [
+   "120250944352200043",
+   "120250944277650043"
+  ],
+  "display_start": "2026-10-13T00:00"
+ },
+ {
+  "campaign": "Post: \"Planning to attend PCO or Managing Head training...\"",
+  "adset": "Post: Planning to attend PCO or Managing Head training - 120251049072730043",
+  "short": "Post boost – training reminder",
+  "objective": "Engagement",
+  "start_at": "2026-10-20T00:00",
+  "end_at": "2026-10-31T23:59",
+  "spend": 689.03,
+  "impressions": 9821,
+  "reach": 6874,
+  "clicks": 562,
+  "meta_results": null,
+  "brings_messages": true,
+  "tracking_ids": []
+ },
+ {
+  "campaign": "ECI | 8% Early Bird | October 26–31",
+  "adset": "Metro Manila | Messenger | Training Inquiries - 120251143519150043",
+  "short": "Early Bird 8% – Metro Manila",
+  "objective": "Engagement",
+  "start_at": "2026-10-26T17:05",
+  "end_at": "2026-10-31T23:59",
+  "spend": 1493.77,
+  "impressions": 16159,
+  "reach": 12027,
+  "clicks": 450,
+  "meta_results": null,
+  "brings_messages": true,
+  "tracking_ids": []
+ }
+]

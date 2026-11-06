@@ -1,0 +1,163 @@
+{
+ "client": {
+  "name": "Environmental Counselors, Inc.",
+  "short": "ECI",
+  "page": "Environmental Training Institute (Facebook)"
+ },
+ "period_label": "October 1 – 31, 2026",
+ "prev_label": "September",
+ "as_of": "Nov 6, 2026",
+ "budget": 15000,
+ "packages": [
+  {
+   "code": "PCO",
+   "label": "PCO – Pollution Control Officer (5 days)",
+   "price": 10500
+  },
+  {
+   "code": "ETMH",
+   "label": "ETMH – Managing Head (1 day)",
+   "price": 5500
+  }
+ ],
+ "previous": {
+  "inquiries": 70,
+  "meta": 16,
+  "organic": 54,
+  "paid": 0
+ },
+ "lost_reason_rules": {
+  "Training format not offered": [
+   "online",
+   "proxy"
+  ],
+  "Schedule / location": [
+   "schedule",
+   "coflict",
+   "conflict",
+   "capiz",
+   "location"
+  ],
+  "Price / reseller": [
+   "price",
+   "markup",
+   "budget"
+  ]
+ },
+ "organic": {
+  "prev_note": "September figures cover Sep 17–28.",
+  "kpis": [
+   {
+    "label": "Views",
+    "prev": 5848,
+    "current": null
+   },
+   {
+    "label": "Viewers (reach)",
+    "prev": 1412,
+    "current": null
+   },
+   {
+    "label": "Content interactions",
+    "prev": 83,
+    "current": null
+   },
+   {
+    "label": "Link clicks",
+    "prev": 26,
+    "current": null
+   },
+   {
+    "label": "Profile visits",
+    "prev": 863,
+    "current": null
+   },
+   {
+    "label": "New follows",
+    "prev": 34,
+    "current": null
+   },
+   {
+    "label": "Page followers",
+    "prev": 3369,
+    "current": null
+   }
+  ],
+  "posts": []
+ },
+ "annotations": [
+  {
+   "day": 9,
+   "label": "Nov training ads"
+  },
+  {
+   "day": 26,
+   "label": "Early Bird"
+  }
+ ],
+ "narrative": {
+  "headline": "Inquiries more than doubled ahead of the November batch",
+  "subhead": "150 Messenger inquiries in October, up from 70 in September. Meta Ads drove two of every three.",
+  "leads_intro": "Inquiries rose when the November training ads started on Oct 9 and peaked during the Early Bird promotion (Oct 26–31).",
+  "channels_intro": "Five ad sets ran in October. Messenger ads were the most efficient, and Early Bird brought in the most inquiries.",
+  "lost_detail": "Details: online PCO training (not allowed under EMB MC 2025-02) and proxy training requests; a schedule conflict from a trainee in Capiz; a marketer asking for a margin.",
+  "insights": [
+   {
+    "title": "Ads now drive most inquiries",
+    "text": "99 of 150 came from Meta Ads, up from 16 in September. Organic held at 51."
+   },
+   {
+    "title": "Messenger ads were the most efficient",
+    "text": "₱11.46 per inquiry. Early Bird brought in the most inquiries (38)."
+   },
+   {
+    "title": "Budget has room to grow",
+    "text": "Only ₱2,966 of ₱15,000 was used, so spend can increase for December."
+   },
+   {
+    "title": "Online training is the main objection",
+    "text": "2 of 5 lost inquiries asked for online or proxy PCO training, which EMB no longer allows."
+   }
+  ],
+  "worked": [
+   "<b>Messenger ads:</b> 34 inquiries at ₱11.46 each, the lowest cost of any ad set.",
+   "<b>Early Bird offer:</b> 38 inquiries in six days, the best week of the month.",
+   "<b>Lead form:</b> fewer inquiries, but it produced the only paid booking.",
+   "<b>Total demand:</b> inquiries more than doubled month on month."
+  ],
+  "attention": [
+   "<b>Conversion:</b> 1 paid booking from 150 inquiries. Most inquiries are still in follow-up.",
+   "<b>Budget pacing:</b> 80% of the ₱15,000 budget was unused, and spend came late in the month.",
+   "<b>Online-training requests:</b> the most common reason for losing an inquiry.",
+   "<b>Engagement ad set:</b> 4.95% CTR but no inquiries."
+  ],
+  "plan": [
+   {
+    "title": "Shift budget to Messenger ads, starting early in the month",
+    "text": "Use the unused budget to push the December 14–18 PCO and December 15 ETMH runs.",
+    "when": "Nov 7–20"
+   },
+   {
+    "title": "Keep a small lead-form budget",
+    "text": "For high-intent registrants who are ready to fill in details.",
+    "when": "Ongoing"
+   },
+   {
+    "title": "Close the two pending payments",
+    "text": "Before the November 9–13 PCO run.",
+    "when": "This week"
+   },
+   {
+    "title": "Answer the online-training question up front",
+    "text": "Explain the face-to-face requirement in the first reply and in a pinned post.",
+    "when": "Nov 10"
+   },
+   {
+    "title": "Cover peak reply hours",
+    "text": "Have someone replying between 10:00 and 12:00 and around 20:00.",
+    "when": "Ongoing"
+   }
+  ],
+  "adsets_note": "The lead-form ad set produced October's only paid booking."
+ }
+}
