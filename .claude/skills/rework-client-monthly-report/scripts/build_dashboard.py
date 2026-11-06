@@ -37,18 +37,21 @@ tot = len(L); meta = sum(1 for x in L if x['source'] == 'Meta Ads'); org = tot -
 st = Counter(x['status'] for x in L)
 paid = st['Paid Booking']; pend = st['Pending Payment']; qual = st['Qualified'] + pend + paid; pay_stage = pend + paid
 lost = st['Declined'] + st['Cancelled']; unreviewed = sum(1 for x in L if x['reviewed'] == 'No')
+# nothing reviewed and no deal moved -> conversion is unknown, not zero
+CONV = unreviewed < tot or any(x['status'] != 'Intake' for x in L)
 price = {p['code']: p['price'] for p in PK}
 pkc = Counter(x['package'] for x in L)
 known = sum(pkc[c] for c in price)
 avg_unknown = (sum(pkc[c] * price[c] for c in price) / known) if known else sum(price.values()) / len(price)
 def value(rows): return sum(price.get(x['package'], avg_unknown) for x in rows)
 potential = value(L); revenue = value([x for x in L if x['status'] == 'Paid Booking'])
-pend_value = value([x for x in L if x['status'] == 'Pending Payment'])
+if not CONV: paid = pend = qual = pay_stage = lost = revenue = None
+pend_value = value([x for x in L if x['status'] == 'Pending Payment']) if CONV else None
 spend = sum(a['spend'] for a in A); impr = sum(a['impressions'] for a in A); reach = sum(a['reach'] for a in A); clicks = sum(a['clicks'] for a in A)
 ctr = clicks / impr * 100 if impr else None
 cpi = spend / meta if meta else None
 paid_ads = sum(1 for x in L if x['status'] == 'Paid Booking' and x['source'] == 'Meta Ads')
-cppb = spend / paid_ads if paid_ads else None
+cppb = spend / paid_ads if (paid_ads and CONV) else None
 budget = d.get('budget')
 inq_by_set = Counter(x['adset'] for x in L if x['adset'])
 paid_by_set = Counter(x['adset'] for x in L if x['adset'] and x['status'] == 'Paid Booking')
@@ -70,7 +73,7 @@ while day <= ND:
 peaks = sorted(range(24), key=lambda h: -hours[h])[:2]
 
 print(f'inquiries {tot} (meta {meta}, organic {org}) | qualified {qual} payment {pay_stage} paid {paid} lost {lost} unreviewed {unreviewed}')
-print(f'potential {potential:,.0f} revenue {revenue:,.0f} | spend {spend:,.2f} cpi {cpi and round(cpi, 2)} ctr {ctr and round(ctr, 2)} reach {reach:,}')
+print(f'potential {potential:,.0f} revenue {revenue} | spend {spend:,.2f} cpi {cpi and round(cpi, 2)} ctr {ctr and round(ctr, 2)} reach {reach:,}')
 print('by ad set:', {a['short']: (inq_by_set[a['adset']], round(a['spend'] / inq_by_set[a['adset']], 2) if inq_by_set[a['adset']] else None) for a in A})
 print('weeks:', weeks, '| peak hours:', [(h, hours[h]) for h in peaks], '| lost:', dict(lost_cat), '| packages:', dict(pkc))
 
@@ -83,7 +86,7 @@ def funnel(stages):
     for i, (lab, v, note) in enumerate(stages):
         w = [100, 78, 56, 36][i]
         out.append(f'<div class="fz"><div style="width:{w}%;background:linear-gradient(180deg,{GRAD[i]})"></div></div>'
-                   f'<div class="flab"><span>{lab}</span><b>{v}</b>{f"<em>{note}</em>" if note else ""}</div>')
+                   f'<div class="flab"><span>{lab}</span><b>{num(v)}</b>{f"<em>{note}</em>" if note else ""}</div>')
     return '<div class="funnel">' + ''.join(out) + '</div>'
 def hbars(items, color):
     mx = max([v for _, v, _ in items] + [1])
@@ -109,7 +112,7 @@ p1 = f'''
   <div class="grid kpis">
     {kpi("purple", "Inquiries", num(tot), up_prev)}
     {kpi("green", "Potential value", short_money(potential), "If every inquiry booked")}
-    {kpi("orange", "Paid bookings", num(paid), f"{peso(revenue)} · {pend} pending payment")}
+    {kpi("orange", "Paid bookings", num(paid), f"{peso(revenue)} · {num(pend)} pending payment" if CONV else "Sales team to update")}
     {kpi("blue", "Ad spend", peso(spend), budget_txt)}
     {kpi("gray", "Cost per inquiry", peso(cpi, 2), "From Meta Ads")}
   </div>
@@ -144,7 +147,7 @@ p1 = f'''
     </div>
     <div class="card">
       <div class="chead"><h3>Leads Funnel</h3></div>
-      {funnel([("Inquiries", tot, ""), ("Qualified", qual, f"{pct(qual, tot)} of inquiries"), ("Payment stage", pay_stage, f"{pct(pay_stage, qual)} of qualified"), ("Paid bookings", paid, f"{peso(revenue)} revenue")])}
+      {funnel([("Inquiries", tot, ""), ("Qualified", qual, (f"{pct(qual, tot)} of inquiries" if CONV else "")), ("Payment stage", pay_stage, (f"{pct(pay_stage, qual)} of qualified" if CONV else "")), ("Paid bookings", paid, (f"{peso(revenue)} revenue" if CONV else ""))])}
       {f'<p class="note">{unreviewed} of {tot} inquiries are still in follow-up; qualified and paid counts are {TBU}.</p>' if unreviewed else ''}
     </div>
   </div>
@@ -177,29 +180,29 @@ p2 = f'''
 # 03 conversion
 pk_colors = ['var(--purple)', 'var(--blue)', 'var(--green)', 'var(--orange)']
 pk_items = [(f"{p['code']} ({peso(p['price'])})", pkc[p['code']], pk_colors[i % 4]) for i, p in enumerate(PK)] + [('Not yet confirmed', pkc['Not specified'], '#d9dce6')]
-mix = ', '.join(f"{pkc[c] / known * 100:.0f}% {c}" for c in price) if known else 'the average list price'
+mix = ', '.join(f"{pkc[c] / known * 100:.0f}% {c}" for c in price) if known else (f"{PK[0]['label'].lower()} price" if len(PK) == 1 else 'the average list price')
 lost_items = [(c, n, '#d9dce6' if c == 'No reason recorded' else None) for c, n in lost_cat.most_common()]
 p3 = f'''
 <section class="page" id="conversion" hidden>
   <div class="title"><h2>Conversion &amp; Revenue</h2><p>Potential value assumes every inquiry books one package at list price: {", ".join(f"{p['code']} {peso(p['price'])}" for p in PK)}.</p></div>
   <div class="grid g3">
     {kpi("green", "Potential value", peso(potential), f"{tot} inquiries at list price")}
-    {kpi("orange", "Revenue from paid bookings", peso(revenue), f"{paid} paid booking{'s' if paid != 1 else ''}")}
+    {kpi("orange", "Revenue from paid bookings", peso(revenue), (f"{paid} paid booking{'s' if paid != 1 else ''}" if CONV else "Sales team to update"))}
     {kpi("purple", "Pending payment", num(pend), f"Up to {peso(pend_value)} more" if pend else "")}
   </div>
   <div class="grid g2">
     <div class="card">
       <div class="chead"><h3>Pipeline Funnel</h3></div>
-      {funnel([("Inquiries", tot, ""), ("Qualified (incl. later stages)", qual, f"{pct(qual, tot)} of inquiries"), ("Pending payment + paid", pay_stage, f"{pct(pay_stage, qual)} of qualified"), ("Paid bookings", paid, f"{paid} of {pay_stage} at payment stage")])}
+      {funnel([("Inquiries", tot, ""), ("Qualified (incl. later stages)", qual, (f"{pct(qual, tot)} of inquiries" if CONV else "")), ("Pending payment + paid", pay_stage, (f"{pct(pay_stage, qual)} of qualified" if CONV else "")), ("Paid bookings", paid, f"{paid} of {pay_stage} at payment stage" if CONV else "")])}
     </div>
     <div class="card">
       <div class="chead"><h3>Package Interest</h3></div>
       {hbars(pk_items, 'var(--purple)')}
-      {f'<p class="note">Package for {pkc["Not specified"]} inquiries is {TBU}. Potential value uses the known mix for these ({mix}).</p>' if pkc['Not specified'] else ''}
+      {f'<p class="note">Package for {pkc["Not specified"]} inquiries is {TBU}. Potential value uses ' + (f'the known mix for these ({mix}).' if known else f'the {mix} for these.') + '</p>' if pkc['Not specified'] else ''}
     </div>
   </div>
   <div class="card">
-    <div class="chead"><h3>Lost Reasons</h3><span class="note">{lost} lost inquiries · open ones {TBU}</span></div>
+    <div class="chead"><h3>Lost Reasons</h3><span class="note">{num(lost)} lost inquiries · open ones {TBU}</span></div>
     {hbars(lost_items, 'var(--orange)') if lost_items else f'<p class="note">No lost inquiries recorded yet {TBU}.</p>'}
     {f'<p class="note">{esc(N["lost_detail"])}</p>' if N.get('lost_detail') else ''}
   </div>
@@ -229,7 +232,7 @@ p4 = f'''
     {kpi("purple", "Ad reach", num(reach), "Summed per ad set")}
     {kpi("green", "Avg. CTR", pct(clicks, impr, 2), f"{impr:,} impressions")}
     {kpi("gray", "Cost per inquiry", peso(cpi, 2), f"{meta} inquiries from ads")}
-    {kpi("orange", "Cost per paid booking", peso(cppb), f"{paid_ads} paid booking{'s' if paid_ads != 1 else ''} from ads")}
+    {kpi("orange", "Cost per paid booking", peso(cppb), (f"{paid_ads} paid booking{'s' if paid_ads != 1 else ''} from ads" if CONV else "Sales team to update"))}
   </div>
   <div class="card">
     <div class="chead"><h3>Meta Ads · Campaign Efficiency</h3></div>
@@ -268,7 +271,7 @@ body = f'''
 <body>
 <div class="wrap">
 <header class="masthead">
-  <div class="brand"><div class="logo">{esc(cl['short'])}</div><div><div class="t">{esc(cl['name'])}</div><div class="s">Monthly Marketing &amp; Sales Report</div></div></div>
+  <div class="brand"><div class="logo" style="font-size:{13 if len(cl.get('logo', cl['short'])) > 3 else 15}px">{esc(cl.get('logo', cl['short'])[:4])}</div><div><div class="t">{esc(cl['name'])}</div><div class="s">Monthly Marketing &amp; Sales Report</div></div></div>
   <div class="period"><i></i>{esc(PER)}</div>
 </header>
 <nav aria-label="Report sections">

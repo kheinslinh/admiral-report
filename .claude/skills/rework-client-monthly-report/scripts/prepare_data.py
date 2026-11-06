@@ -21,6 +21,7 @@ import argparse, datetime, json, re
 STAGE_TO_STATUS = {  # Sales stage name keywords -> report status (edit per pipeline)
     'payment': 'Pending Payment', 'confirmation': 'Pending Payment',
     'qualified': 'Qualified', 'quotation': 'Qualified', 'offer': 'Qualified', 'negotiation': 'Qualified',
+    'consultation': 'Qualified', 'decision': 'Qualified', 'treatment plan': 'Qualified',
 }
 
 def norm(s):
@@ -86,12 +87,15 @@ def main():
             nm = re.sub(r'\s+via\s+.*$|\s*#\d+$', '', d['name'], flags=re.I)
             deals[norm(nm)] = d
 
-    # ad-set attribution by date: last ad set whose window contains the start time wins
+    # ad-set attribution by date: among message ad sets live at the start time, the highest spend per day wins
     def window(x):
         s = datetime.datetime.fromisoformat(x['start_at']).replace(tzinfo=tz)
         e = datetime.datetime.fromisoformat(x['end_at']).replace(tzinfo=tz)
         return s, e
     msg_sets = [x for x in adsets if x.get('brings_messages', True)]
+    def daily_spend(x):
+        s, e = window(x)
+        return x['spend'] / max((e - s).total_seconds() / 86400, 0.5)
     hint_map = {}
     for x in adsets:
         for h in x.get('tracking_ids', []):
@@ -123,10 +127,10 @@ def main():
                 sn = str(dl.get('stage_name') or (dl.get('stage') or {}).get('name', '') if isinstance(dl.get('stage'), dict) else dl.get('stage_name') or '').lower()
                 row['status'] = next((v for k_, v in STAGE_TO_STATUS.items() if k_ in sn), 'Intake')
         if row['source'] == 'Meta Ads' and not row['adset']:
-            for x in msg_sets:
-                s, e = window(x)
-                if s <= d <= e:
-                    row['adset'] = x['adset']
+            # several message ad sets live that day -> the one spending most per day most likely delivered the ad
+            live = [x for x in msg_sets if window(x)[0] <= d <= window(x)[1]]
+            if live:
+                row['adset'] = max(live, key=daily_spend)['adset']
             row['adset_estimated'] = bool(row['adset'])
         row['reason_category'] = reason_category(row['reason'], row['status'], rules)
         leads.append(row)

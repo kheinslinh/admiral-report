@@ -71,8 +71,12 @@ and the long number maps to an ad set through `tracking_ids`.
 - `brings_messages`: true if the ad opens Messenger (Messages objective, boosted posts with a Send-message button).
   Only these receive date-window attribution. Lead-form / engagement sets get inquiries only through `tracking_ids`.
 - Date-window rule: an untagged ad conversation goes to the message ad set whose window contains its start time;
-  overlaps go to the later-listed set. Stretch the main Messenger set's `start_at` back to day 1 so early ad
+  when several overlap, the one with the highest spend per day wins. Stretch the main Messenger set's `start_at` back to day 1 so early ad
   conversations are not left blank, and put the real start in `display_start` for the dashboard.
+- An ad set that runs past month end: multiply spend/impressions/reach/clicks by the share of its days inside the
+  month, set `end_at` to the month end, and mark `short` with ` *` (explain in `adsets_note`).
+- Conversations started by an ad that is not synced in Rework (e.g. a boosted post created in Meta only) cannot be
+  costed - sample a few with `rework_prospect_channel_get` (`referral_sources[].ads_context_data.ad_title`) to check.
 - `meta_results` stays `null` → orange cell in Excel, TBU on the dashboard (copied from Ads Manager by the client).
 
 ### 1E. config.json (per client, copy the example)
